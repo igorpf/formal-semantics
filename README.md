@@ -1,1 +1,2 @@
-chegou o momento de testar o quao doce é esse açúcar sintático
+As funções, tipos, etc. devem ficar dentro da pasta src/
+Testes devem ficar dentro de test/
