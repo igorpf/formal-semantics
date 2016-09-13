@@ -1,3 +1,4 @@
+open System
 module L1 = 
     
             
@@ -65,6 +66,8 @@ module L1 =
         | TmTl (TmConcat (t1, t2)) -> t2
         | TmIsEmpty (TmNil) -> TmBool true
         | TmIsEmpty (TmConcat(t,t1)) -> TmBool false
+
+        | TmTry (TmRaise, e2) -> e2
         (*como representar valores prontos??*)
         
         | _ -> raise NoRuleApplies
@@ -73,3 +76,5 @@ module L1 =
         try let t' = step t
             in eval t'
             with NoRuleApplies -> t
+    let c = eval ((TmHd(TmConcat (TmInt 5, TmNil))))
+    Console.WriteLine("{0}", c)
