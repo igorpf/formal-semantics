@@ -4,6 +4,7 @@ module L1 =
             
      
     type Ident = string
+    
     type Operator = 
         | OpPlus
         | OpMinus
@@ -34,7 +35,9 @@ module L1 =
         | TmTry of Term * Term 
 
     exception NoRuleApplies
-    
+            
+        
+        
 
     let rec step t = 
         match t with
@@ -67,10 +70,33 @@ module L1 =
         | TmIsEmpty (TmNil) -> TmBool true
         | TmIsEmpty (TmCons(t,t1)) -> TmBool false
 
+        | TmTry (t, e2) -> 
+            let t' = step t in
+            TmTry(t, e2)
         | TmTry (TmRaise, e2) -> e2
-        (*como representar valores prontos??*)
+
+        // | TmApply (TmFn(x,e), e2) ->
+
+        | TmApply (e1, e2) -> 
+            let e1' = step e1 in
+            TmApply(e1',e2)
+        | TmApply (TmFn(x,e), e2) -> 
+            let e2' = step e2 in
+            TmApply(TmFn(x,e),e2')
+        (*falta a regra para e1 já avaliado em um valor*)
+        | TmLet (x, e1, e2) ->
+            let e1' = step e1 in
+            TmLet(x, e1', e2)
+
+        | TmLetRec(f, TmFn(y, e1), e2) ->
+            e1(*arrumar*)
         
         | _ -> raise NoRuleApplies
+    let rec substitute x v = 
+        match (x,v) with
+        | (TmX(x),TmBool b )->TmBool b
+        | (TmX(x),TmInt i )->TmInt i
+          
 
     let rec eval t =
         try let t' = step t
