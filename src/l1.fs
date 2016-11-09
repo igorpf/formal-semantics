@@ -38,7 +38,24 @@ module L1 =
             
         
         
+    let rec substitute x v = 
+        match (x,v) with
+        | (TmX(x),TmBool b )->TmBool b
+        | (TmX(x),TmInt i )->TmInt i
 
+    let rec isValue x = 
+        match x with
+        | TmBool x -> true
+        | TmInt x -> true
+        | TmFn (a, b) -> true
+        | _ -> false
+    let rec isList x = 
+        match x with 
+        | TmNil -> true
+        | TmCons(a, b) ->
+            let b' = isList b in
+                isValue a && b'
+        | _ -> false     
     let rec step t = 
         match t with
         | TmIf ( TmBool true , t2 , t3 ) -> t2
@@ -65,24 +82,32 @@ module L1 =
             let t1' = step t1 in
             TmOp(t, t1', t2)
         
-        | TmHd (TmCons (t1, t2)) -> t1
-        | TmTl (TmCons (t1, t2)) -> t2
-        | TmIsEmpty (TmNil) -> TmBool true
-        | TmIsEmpty (TmCons(t,t1)) -> TmBool false
+        
 
         | TmTry (t, e2) -> 
             let t' = step t in
-            TmTry(t, e2)
+            TmTry(t', e2)
         | TmTry (TmRaise, e2) -> e2
 
-        // | TmApply (TmFn(x,e), e2) ->
+        | TmCons(e1, e2) when not (isValue e1) -> 
+            let e1' = step e1 in 
+            TmCons(e1', e2)
+        | TmCons(e1, e2) when (isValue e1) -> 
+            let e2' = step e2 in 
+            TmCons(e1, e2')
+        | TmHd (TmCons (t1, t2)) when isList(TmCons (t1, t2))-> t1
+        | TmTl (TmCons (t1, t2)) when isList(TmCons (t1, t2)) -> t2
+        | TmIsEmpty (TmNil) -> TmBool true
+        | TmIsEmpty (TmCons(t1,t2)) when isList(TmCons (t1, t2)) -> TmBool false
 
+        // | TmApply (TmFn(x,e), e2) ->
+        
+        | TmApply (e1, e2) when isValue e1-> 
+            let e2' = step e2 in
+            TmApply(e1,e2')
         | TmApply (e1, e2) -> 
             let e1' = step e1 in
-            TmApply(e1',e2)
-        | TmApply (TmFn(x,e), e2) -> 
-            let e2' = step e2 in
-            TmApply(TmFn(x,e),e2')
+            TmApply(e1',e2)    
         (*falta a regra para e1 já avaliado em um valor*)
         | TmLet (x, e1, e2) ->
             let e1' = step e1 in
@@ -92,11 +117,8 @@ module L1 =
             e1(*arrumar*)
         
         | _ -> raise NoRuleApplies
-    let rec substitute x v = 
-        match (x,v) with
-        | (TmX(x),TmBool b )->TmBool b
-        | (TmX(x),TmInt i )->TmInt i
-          
+
+    
 
     let rec eval t =
         try let t' = step t
@@ -104,3 +126,5 @@ module L1 =
             with NoRuleApplies -> t
     let c = eval ((TmHd(TmCons (TmInt 5, TmNil))))
     Console.WriteLine("{0}", c)
+    let d = isList (TmCons(TmInt 5, TmCons(TmFn("s", TmInt 3), TmNil)))
+    Console.WriteLine("{0}", d)
