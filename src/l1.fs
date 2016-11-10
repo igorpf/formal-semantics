@@ -38,17 +38,23 @@ module L1 =
             
         
         
-    let rec substitute x v = 
-        match (x,v) with
-        | (TmX(x),TmBool b )->TmBool b
-        | (TmX(x),TmInt i )->TmInt i
-
     let rec isValue x = 
         match x with
         | TmBool x -> true
         | TmInt x -> true
         | TmFn (a, b) -> true
         | _ -> false
+
+    let rec substitute x v e = 
+        match (x, e) with        
+        | (TmX b,TmOp(op, y , z)) when isValue v -> 
+            let sy = substitute x v y in
+                let sz = substitute x v z in 
+                    TmOp(op, sy, sz)
+        | (TmX b,x) when isValue v -> v
+        | _ -> e
+
+    
     let rec isList x = 
         match x with 
         | TmNil -> true
@@ -125,6 +131,8 @@ module L1 =
             in eval t'
             with NoRuleApplies -> t
     let c = eval ((TmHd(TmCons (TmInt 5, TmNil))))
-    Console.WriteLine("{0}", c)
+    //Console.WriteLine("{0}", c)
     let d = isList (TmCons(TmInt 5, TmCons(TmFn("s", TmInt 3), TmNil)))
-    Console.WriteLine("{0}", d)
+    //Console.WriteLine("{0}", d)
+    let e = substitute (TmX "x"), TmInt 1, TmOp(OpPlus, TmX "x", TmInt 2)
+    Console.WriteLine("{0}", e)
