@@ -2,3 +2,5 @@ TrabSemantica.sln
 TrabSemantica.userprefs
 TrabSemantica.fsproj
 .paket/paket.exe
+packages/**
+paket.lock

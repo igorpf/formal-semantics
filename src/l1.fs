@@ -130,9 +130,9 @@ module L1 =
             with NoRuleApplies -> t
 
     (*-------------Testes--------------------------------*)        
-    let c = eval ((TmHd(TmCons (TmInt 5, TmNil))))
-    //Console.WriteLine("{0}", c)
+    let c = (eval ((TmHd(TmCons (TmInt 5, TmNil))))) = TmInt 5 
+    Console.WriteLine("{0}", c)
     let d = isList (TmCons(TmInt 5, TmCons(TmFn("s", TmInt 3), TmNil)))
     //Console.WriteLine("{0}", d)
     let e = substitute (TmX "x"), TmInt 1, TmOp(OpPlus, TmX "x", TmInt 2)
-    Console.WriteLine("{0}", e)
+    //Console.WriteLine("{0}", e)
