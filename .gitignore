@@ -1,4 +1,4 @@
 TrabSemantica.sln
 TrabSemantica.userprefs
 TrabSemantica.fsproj
-**.exe
+.paket/paket.exe
