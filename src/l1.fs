@@ -87,8 +87,6 @@ module L1 =
         | TmOp ( t, t1, t2) ->
             let t1' = step t1 in
             TmOp(t, t1', t2)
-        
-        
 
         | TmTry (t, e2) -> 
             let t' = step t in
@@ -106,7 +104,7 @@ module L1 =
         | TmIsEmpty (TmNil) -> TmBool true
         | TmIsEmpty (TmCons(t1,t2)) when isList(TmCons (t1, t2)) -> TmBool false
 
-        // | TmApply (TmFn(x,e), e2) ->
+        | TmApply (TmFn(x,e), e2) when isValue e2-> substitute (TmX x) e2 e 
         
         | TmApply (e1, e2) when isValue e1-> 
             let e2' = step e2 in
@@ -114,13 +112,13 @@ module L1 =
         | TmApply (e1, e2) -> 
             let e1' = step e1 in
             TmApply(e1',e2)    
-        (*falta a regra para e1 já avaliado em um valor*)
+        | TmLet (x, e1, e2) when isValue e1-> substitute (TmX x) e1 e2
         | TmLet (x, e1, e2) ->
             let e1' = step e1 in
             TmLet(x, e1', e2)
-
+            (*let rec f = (fn y => e1) in e2  *)
         | TmLetRec(f, TmFn(y, e1), e2) ->
-            e1(*arrumar*)
+            substitute (TmX f) (TmFn(y, TmLetRec(f, TmFn(y, e1), e1))) e2
         
         | _ -> raise NoRuleApplies
 
@@ -130,6 +128,8 @@ module L1 =
         try let t' = step t
             in eval t'
             with NoRuleApplies -> t
+
+    (*-------------Testes--------------------------------*)        
     let c = eval ((TmHd(TmCons (TmInt 5, TmNil))))
     //Console.WriteLine("{0}", c)
     let d = isList (TmCons(TmInt 5, TmCons(TmFn("s", TmInt 3), TmNil)))
