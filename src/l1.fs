@@ -51,6 +51,15 @@ module L1 =
             let sy = substitute x v y in
                 let sz = substitute x v z in 
                     TmOp(op, sy, sz)
+        | (TmX b,TmApply(e1, e2)) when isValue v  ->
+            let e1' = substitute x v e1 in
+                let e2' = substitute x v e2 in
+                    TmApply(e1',e2')
+        | (TmX b,TmIf(e1, e2 , e3)) when isValue v ->
+            let e1' = substitute x v e1 in
+                let e2' = substitute x v e2 in 
+                    let e3' = substitute x v e3 in
+                        TmIf(e1', e2' , e3')
         | (TmX b,z) when isValue v && (TmX b) = z -> v  
         | _ -> e
 
@@ -129,12 +138,33 @@ module L1 =
             in eval t'
             with NoRuleApplies -> t
 
-    (*-------------Testes--------------------------------*)        
-     
+    (*--------------------------------------Testes---------------------------------------------*)
+    (*Eval - operadores*)
     Console.WriteLine("Esperado: true, {0}", 
-        (eval ((TmHd(TmCons (TmInt 5, TmNil))))) = TmInt 5)
+        (eval ((TmOp(OpPlus,TmInt 2, TmInt 3)))) = TmInt 5)
+    (*Eval - apply*)    
+    Console.WriteLine("Esperado: true, {0}", 
+        (eval (TmApply (TmFn("x",TmOp(OpMinus, (TmX "x"), (TmInt 3))), (TmInt 5)))) = TmInt 2)
+    (*Eval - Let e Let rec*)    
+    Console.WriteLine("Esperado: true, {0}", 
+        (eval (TmLet("x",TmInt 5,TmOp(OpDiv, TmInt 10, TmX "x")))) = TmInt 2)
+    Console.WriteLine("Esperado: true, {0}", 
+        (eval (TmLetRec("fat", TmFn("x", TmIf(TmOp(OpEQ, TmX "x", TmInt 0),TmInt 1,TmOp(OpMult, TmX "x", TmApply(TmX "fat", TmOp(OpMinus, TmX "x", TmInt 1)) ))),TmApply(TmX "fat", TmInt 3)))) = TmInt 6)
+           
+    (*Eval - listas*)            
+    Console.WriteLine("Esperado: true, {0}", 
+        (eval ((TmHd(TmCons (TmInt 5, TmNil))))) = TmInt 5) 
+    Console.WriteLine("Esperado: true, {0}", 
+        (eval ((TmTl(TmCons (TmInt 5, TmNil))))) = TmNil)
     Console.WriteLine("Esperado: true, {0}",
         isList (TmCons(TmInt 5, TmCons(TmFn("s", TmInt 3), TmNil))))
+    (*Substitute*)
+    Console.WriteLine("Esperado: true, {0}", 
+        eval (substitute (TmX "x") (TmBool true) (TmIf( TmX "x",TmInt 1, TmInt 2))) =TmInt 1)
+    Console.WriteLine("Esperado: true, {0}", 
+        eval (substitute (TmX "func") (TmFn("x", TmOp(OpMinus, TmX "x", TmInt 1)))  (TmApply(TmX "func", TmInt 3))) =TmInt 2)
+    Console.WriteLine("Esperado: true, {0}", 
+        eval (substitute (TmX "x") (TmInt 1) (TmIf(TmOp(OpEQ, TmX "x", TmInt 0),TmInt 1, TmInt 2))) =TmInt 2)    
     Console.WriteLine("Esperado: true, {0}", 
         substitute (TmX "x") (TmInt 1) (TmOp(OpPlus, TmX "x", TmInt 2)) =TmOp(OpPlus, TmInt 1, TmInt 2))
     Console.WriteLine("Esperado: true, {0}", 
