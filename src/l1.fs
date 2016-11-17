@@ -51,7 +51,7 @@ module L1 =
             let sy = substitute x v y in
                 let sz = substitute x v z in 
                     TmOp(op, sy, sz)
-        | (TmX b,x) when isValue v -> v
+        | (TmX b,z) when isValue v && (TmX b) = z -> v  
         | _ -> e
 
     
@@ -130,13 +130,14 @@ module L1 =
             with NoRuleApplies -> t
 
     (*-------------Testes--------------------------------*)        
-    let c = (eval ((TmHd(TmCons (TmInt 5, TmNil))))) = TmInt 5 
-    Console.WriteLine("Esperado: true, {0}", c)
-    let d = isList (TmCons(TmInt 5, TmCons(TmFn("s", TmInt 3), TmNil)))
-    Console.WriteLine("Esperado: true, {0}", d)
-    let e = substitute (TmX "x") (TmInt 1) (TmOp(OpPlus, TmX "x", TmInt 2)) =TmOp(OpPlus, TmX "x", TmInt 2) 
-    Console.WriteLine("Esperado: true, {0}", e)
-    let f = substitute (TmX "x") (TmInt 1)  (TmX "x") =TmInt 1 
-    Console.WriteLine("Esperado: true, {0}", f)
-    let g = substitute (TmX "x") (TmOp(OpPlus, TmX "x", TmInt 2))  (TmX "x") = TmX "x" //Não é valor, tem q devolver expressão original
-    Console.WriteLine("Esperado: true, {0}", g)
+     
+    Console.WriteLine("Esperado: true, {0}", 
+        (eval ((TmHd(TmCons (TmInt 5, TmNil))))) = TmInt 5)
+    Console.WriteLine("Esperado: true, {0}",
+        isList (TmCons(TmInt 5, TmCons(TmFn("s", TmInt 3), TmNil))))
+    Console.WriteLine("Esperado: true, {0}", 
+        substitute (TmX "x") (TmInt 1) (TmOp(OpPlus, TmX "x", TmInt 2)) =TmOp(OpPlus, TmInt 1, TmInt 2))
+    Console.WriteLine("Esperado: true, {0}", 
+        substitute (TmX "x") (TmInt 1)  (TmX "x") =TmInt 1)
+    Console.WriteLine("Esperado: true, {0}", 
+        substitute (TmX "x") (TmInt 1)  (TmInt 3) = TmInt 3)
