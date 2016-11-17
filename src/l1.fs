@@ -60,6 +60,13 @@ module L1 =
                 let e2' = substitute x v e2 in 
                     let e3' = substitute x v e3 in
                         TmIf(e1', e2' , e3')
+        | (TmX b,TmFn(id, e1)) when isValue v ->
+            let e1' = substitute x v e1 in
+                TmFn(id, e1')
+        | (TmX b,TmLetRec(id, e1, e2)) when isValue v  ->
+            let e1' = substitute x v e1 in
+                // let e2' = substitute x v e2 in
+                    TmLetRec(id, e1', e2)
         | (TmX b,z) when isValue v && (TmX b) = z -> v  
         | _ -> e
 
@@ -142,6 +149,8 @@ module L1 =
     (*Eval - operadores*)
     Console.WriteLine("Esperado: true, {0}", 
         (eval ((TmOp(OpPlus,TmInt 2, TmInt 3)))) = TmInt 5)
+    Console.WriteLine("Esperado: true, {0}", 
+        (eval ((TmOp(OpPlus,(TmOp(OpPlus,TmInt 2, TmInt 3)), TmInt 3)))) = TmInt 8)
     (*Eval - apply*)    
     Console.WriteLine("Esperado: true, {0}", 
         (eval (TmApply (TmFn("x",TmOp(OpMinus, (TmX "x"), (TmInt 3))), (TmInt 5)))) = TmInt 2)
@@ -150,7 +159,8 @@ module L1 =
         (eval (TmLet("x",TmInt 5,TmOp(OpDiv, TmInt 10, TmX "x")))) = TmInt 2)
     Console.WriteLine("Esperado: true, {0}", 
         (eval (TmLetRec("fat", TmFn("x", TmIf(TmOp(OpEQ, TmX "x", TmInt 0),TmInt 1,TmOp(OpMult, TmX "x", TmApply(TmX "fat", TmOp(OpMinus, TmX "x", TmInt 1)) ))),TmApply(TmX "fat", TmInt 3)))) = TmInt 6)
-           
+    Console.WriteLine("Esperado: true, {0}", 
+        (eval (TmLetRec("func", TmFn("x", TmX "x") ,TmApply(TmX "func", TmInt 3)))) = TmInt 3)       
     (*Eval - listas*)            
     Console.WriteLine("Esperado: true, {0}", 
         (eval ((TmHd(TmCons (TmInt 5, TmNil))))) = TmInt 5) 
