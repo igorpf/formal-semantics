@@ -44,30 +44,34 @@ module L1 =
         | TmInt x -> true
         | TmFn (a, b) -> true
         | _ -> false
-
+    (*{v/x} e*)
     let rec substitute x v e = 
         match (x, e) with        
-        | (TmX b,TmOp(op, y , z)) when isValue v -> 
+        | (TmX b,TmOp(op, y , z))  -> 
             let sy = substitute x v y in
                 let sz = substitute x v z in 
                     TmOp(op, sy, sz)
-        | (TmX b,TmApply(e1, e2)) when isValue v  ->
+        | (TmX b,TmApply(e1, e2))   ->
             let e1' = substitute x v e1 in
                 let e2' = substitute x v e2 in
                     TmApply(e1',e2')
-        | (TmX b,TmIf(e1, e2 , e3)) when isValue v ->
+        | (TmX b,TmIf(e1, e2 , e3))  ->
             let e1' = substitute x v e1 in
                 let e2' = substitute x v e2 in 
                     let e3' = substitute x v e3 in
                         TmIf(e1', e2' , e3')
-        | (TmX b,TmFn(id, e1)) when isValue v ->
+        | (TmX b,TmFn(id, e1)) when b <> id ->
             let e1' = substitute x v e1 in
                 TmFn(id, e1')
-        | (TmX b,TmLetRec(id, e1, e2)) when isValue v  ->
+        | (TmX b, TmLet(id, e1, e2)) when b <> id -> 
+             let e1' = substitute x v e1 in
+                let e2' = substitute x v e2 in 
+                    TmLet(id, e1', e2')
+        | (TmX b,TmLetRec(id, e1, e2)) when b <> id  ->
             let e1' = substitute x v e1 in
                 // let e2' = substitute x v e2 in
                     TmLetRec(id, e1', e2)
-        | (TmX b,z) when isValue v && (TmX b) = z -> v  
+        | (TmX b,z)  when (TmX b) = z -> v  
         | _ -> e
 
     
@@ -160,7 +164,7 @@ module L1 =
     Console.WriteLine("Esperado: true, {0}", 
         (eval (TmLetRec("fat", TmFn("x", TmIf(TmOp(OpEQ, TmX "x", TmInt 0),TmInt 1,TmOp(OpMult, TmX "x", TmApply(TmX "fat", TmOp(OpMinus, TmX "x", TmInt 1)) ))),TmApply(TmX "fat", TmInt 3)))) = TmInt 6)
     Console.WriteLine("Esperado: true, {0}", 
-        (eval (TmLetRec("func", TmFn("x", TmX "x") ,TmApply(TmX "func", TmInt 3)))) = TmInt 3)       
+        (eval (TmLetRec("func", TmFn("x", TmX "x") ,TmApply(TmX "func", TmInt 3)))) = TmFn("x", TmLetRec("func", TmFn("x", TmInt 3), TmX "x")))       
     (*Eval - listas*)            
     Console.WriteLine("Esperado: true, {0}", 
         (eval ((TmHd(TmCons (TmInt 5, TmNil))))) = TmInt 5) 
