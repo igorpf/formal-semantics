@@ -69,8 +69,8 @@ module L1 =
                     TmLet(id, e1', e2')
         | (TmX b,TmLetRec(id, e1, e2)) when b <> id  ->
             let e1' = substitute x v e1 in
-                // let e2' = substitute x v e2 in
-                    TmLetRec(id, e1', e2)
+                 let e2' = substitute x v e2 in
+                    TmLetRec(id, e1', e2')
         | (TmX b,z)  when (TmX b) = z -> v  
         | _ -> e
 
@@ -155,6 +155,8 @@ module L1 =
         (eval ((TmOp(OpPlus,TmInt 2, TmInt 3)))) = TmInt 5)
     Console.WriteLine("Esperado: true, {0}", 
         (eval ((TmOp(OpPlus,(TmOp(OpPlus,TmInt 2, TmInt 3)), TmInt 3)))) = TmInt 8)
+    Console.WriteLine("Esperado: true, {0}", 
+        (eval ((TmOp(OpEQ,TmInt 3, TmInt 3)))) = TmBool true)
     (*Eval - apply*)    
     Console.WriteLine("Esperado: true, {0}", 
         (eval (TmApply (TmFn("x",TmOp(OpMinus, (TmX "x"), (TmInt 3))), (TmInt 5)))) = TmInt 2)
@@ -162,9 +164,9 @@ module L1 =
     Console.WriteLine("Esperado: true, {0}", 
         (eval (TmLet("x",TmInt 5,TmOp(OpDiv, TmInt 10, TmX "x")))) = TmInt 2)
     Console.WriteLine("Esperado: true, {0}", 
-        (eval (TmLetRec("fat", TmFn("x", TmIf(TmOp(OpEQ, TmX "x", TmInt 0),TmInt 1,TmOp(OpMult, TmX "x", TmApply(TmX "fat", TmOp(OpMinus, TmX "x", TmInt 1)) ))),TmApply(TmX "fat", TmInt 3)))) = TmInt 6)
+        (eval (TmLetRec("fat", TmFn("x", TmIf(TmOp(OpEQ, TmX "x", TmInt 0),TmInt 1,TmOp(OpMult, TmX "x", TmApply(TmX "fat", TmOp(OpMinus, TmX "x", TmInt 1)) ))),TmApply(TmX "fat", TmInt 5)))) = TmInt 120)
     Console.WriteLine("Esperado: true, {0}", 
-        (eval (TmLetRec("func", TmFn("x", TmX "x") ,TmApply(TmX "func", TmInt 3)))) = TmFn("x", TmLetRec("func", TmFn("x", TmInt 3), TmX "x")))       
+        (eval (TmLetRec("func", TmFn("x", TmIf(TmOp(OpEQ, TmX "x", TmInt 1),TmInt 1,TmOp(OpPlus, TmX "x", TmApply(TmX "func", TmOp(OpMinus, TmX "x", TmInt 1)) ))),TmApply(TmX "func", TmInt 3)))) = TmInt 6)
     (*Eval - listas*)            
     Console.WriteLine("Esperado: true, {0}", 
         (eval ((TmHd(TmCons (TmInt 5, TmNil))))) = TmInt 5) 
